@@ -6,20 +6,14 @@ using UnityEngine.Rendering.Universal;
 
 public class CustomFullscreenRendererFeature : ScriptableRendererFeature
 {
-    public Shader shader;
-
-    [SerializeField] Color color1 = Color.white;
-    [SerializeField] Color color2 = Color.black;
-    
-    Material material;
-
-    CustomFullscreenPass renderPass = null;
+    public Material material;
+    private CustomFullscreenPass _renderPass;
 
     public override void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData)
     {
         if(renderingData.cameraData.cameraType == CameraType.Game)
         {
-            renderer.EnqueuePass(renderPass);
+            renderer.EnqueuePass(_renderPass);
         }
     }
 
@@ -27,16 +21,13 @@ public class CustomFullscreenRendererFeature : ScriptableRendererFeature
     {
         if(renderingData.cameraData.cameraType == CameraType.Game)
         {
-            renderPass.ConfigureInput(ScriptableRenderPassInput.Color);
-            renderPass.SetTarget(renderer.cameraColorTargetHandle);
-            renderPass.color1 = color1;
-            renderPass.color2 = color2;
+            _renderPass.ConfigureInput(ScriptableRenderPassInput.Color);
+            _renderPass.SetResources(material, renderer.cameraColorTargetHandle);
         }
     }
 
     public override void Create()
     {
-        material = CoreUtils.CreateEngineMaterial(shader);
-        renderPass = new CustomFullscreenPass(material);
+        _renderPass = new CustomFullscreenPass(material);
     }
 }

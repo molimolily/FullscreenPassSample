@@ -1,5 +1,10 @@
-Shader "Fullscreen"
+Shader "CustomFullscreen/TwoColorSwap"
 {
+    Properties
+    {
+        _Color1 ("Color 1", Color) = (1, 0, 0, 1)
+        _Color2 ("Color 2", Color) = (0, 0, 1, 1)
+    }
     SubShader
     {
         Tags { "RenderType"="Opaque" "RenderPipeline" = "UniversalPipeline"}
@@ -11,20 +16,21 @@ Shader "Fullscreen"
 
            HLSLPROGRAM
            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
-           #include "Packages/com.unity.render-pipelines.core/Runtime/Utilities/Blit.hlsl"
+           #include "FullscreenVertex.hlsl"
 
            #pragma vertex Vert
            #pragma fragment frag
 
-           TEXTURE2D_X(_CameraOpaqueTexture);
-           SAMPLER(sampler_CameraOpaqueTexture);
-
-           float4 _Color;
+           float4 _Color1;
+           float4 _Color2;
+           int _FrameCount;
 
            half4 frag(Varyings input) : SV_Target
 		   {
-               UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
-			   return _Color;
+		       if (_FrameCount % 2.0 < 1.0)
+		           return _Color1;
+               else
+                   return _Color2;
 		   }
            ENDHLSL
         }

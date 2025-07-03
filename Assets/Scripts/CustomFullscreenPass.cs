@@ -6,62 +6,37 @@ using UnityEngine.Rendering.Universal;
 
 public class CustomFullscreenPass : ScriptableRenderPass
 {
-    Material material;
-    RTHandle cameraColorTarget;
-
-    public Color color1;
-    public Color color2;
+    private static readonly int FrameCount = Shader.PropertyToID("_FrameCount");
+    private Material _material;
+    private RTHandle _colorTarget;
 
     public CustomFullscreenPass(Material material)
     {
-        this.material = material;
+        _material = material;
         renderPassEvent = RenderPassEvent.AfterRendering;
         profilingSampler = new ProfilingSampler("CustomFullscreenPass");
     }
 
-    public void SetTarget(RTHandle cameraColorTarget)
+    public void SetResources(Material material, RTHandle target)
     {
-        this.cameraColorTarget = cameraColorTarget;
+        _material = material;
+        _colorTarget = target;
     }
-
+    
     public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
     {
-        ConfigureTarget(cameraColorTarget);
+        ConfigureTarget(_colorTarget);
     }
 
     public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
     {
-        var cameraData = renderingData.cameraData;
-        if(cameraData.cameraType != CameraType.Game)
-        {
-            return;
-        }
-
-        if(material == null)
-        {
-            return;
-        }
-
+        if(_material == null) return;
+        _material.SetInt(FrameCount, Time.frameCount);
+        
         CommandBuffer cmd = CommandBufferPool.Get();
         using(new ProfilingScope(cmd, profilingSampler))
         {
-            if(Application.isPlaying)
-            {
-                if (Time.frameCount % 2 == 0)
-                {
-                    material.SetColor("_Color", color1);
-                }
-                else
-                {
-                    material.SetColor("_Color", color2);
-                }
-            }
-            else
-            {
-                material.SetColor("_Color", color1);
-            }
-            
-            cmd.DrawProcedural(Matrix4x4.identity, material, 0, MeshTopology.Quads, 4, 1);
+            CoreUtils.DrawFullScreen(cmd, _material);
         }
         context.ExecuteCommandBuffer(cmd);
         cmd.Clear();
