@@ -6,7 +6,6 @@ using UnityEngine.Rendering.Universal;
 
 public class CustomFullscreenPass : ScriptableRenderPass
 {
-    ProfilingSampler profilingSampler = new ProfilingSampler("CustomFullscreenPass");
     Material material;
     RTHandle cameraColorTarget;
 
@@ -16,8 +15,8 @@ public class CustomFullscreenPass : ScriptableRenderPass
     public CustomFullscreenPass(Material material)
     {
         this.material = material;
-        // renderPassEvent = RenderPassEvent.AfterRendering;
-        renderPassEvent = RenderPassEvent.BeforeRenderingPostProcessing;
+        renderPassEvent = RenderPassEvent.AfterRendering;
+        profilingSampler = new ProfilingSampler("CustomFullscreenPass");
     }
 
     public void SetTarget(RTHandle cameraColorTarget)
@@ -61,8 +60,7 @@ public class CustomFullscreenPass : ScriptableRenderPass
             {
                 material.SetColor("_Color", color1);
             }
-
-            // Blitter.BlitCameraTexture(cmd, cameraColorTarget, cameraColorTarget, material, 0);
+            
             cmd.DrawProcedural(Matrix4x4.identity, material, 0, MeshTopology.Quads, 4, 1);
         }
         context.ExecuteCommandBuffer(cmd);
